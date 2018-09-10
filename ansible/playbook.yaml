@@ -1,0 +1,153 @@
+---
+- name: Ubuntu setup
+  hosts: localhost
+  connection: local
+  user: luiz
+  vars:
+    pwd: "{{ ansible_env.PWD }}"
+  tasks:
+    - name: Add Docker GPG key
+      become: true
+      apt_key: url=https://download.docker.com/linux/ubuntu/gpg
+    - name: Add Docker APT repository
+      become: true
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+
+    - name: install basic packages
+      become: true
+      apt: name={{item}} state=present
+      with_items:
+        # - lightdm
+        - mate-desktop-environment-extras
+        - i3
+        - numix-gtk-theme 
+        - numix-icon-theme
+        - build-essential
+        - libdbus-1-dev
+        - curl
+        - rofi
+        - lm-sensors
+        - docker-ce
+        - autojump
+        - zsh
+
+    - name: applying dconf values
+      dconf:
+        key: "{{item.key}}"
+        value: "{{item.value}}"
+        state: present
+      with_items:
+        - { key: /org/mate/desktop/session/required-components-list, value: "['windowmanager', 'filemanager', 'dock']"}
+        - { key: /org/mate/desktop/session/required-components/windowmanager, value: "'i3'" }
+        - { key: /org/mate/desktop/background/show-desktop-icons, value: "false" }
+        - { key: /org/mate/desktop/interface/gtk-theme, value: "'Arc-Dark'" }
+        - { key: /org/mate/desktop/interface/icon-theme, value: "'Numix'" }
+        - { key: /org/mate/desktop/font-rendering/dpi, value: "140.0" }
+
+    - name: install deb packages
+      become: false
+      apt: deb={{item}}
+      with_items:
+        - https://github.com/acrisci/playerctl/releases/download/v0.6.1/playerctl-0.6.1_amd64.deb
+        - https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        - https://vscode-update.azurewebsites.net/latest/linux-deb-x64/stable
+    
+    - name: link i3 config
+      file:
+        src: "{{pwd}}/files/configs/i3.conf"
+        dest: /home/luiz/.config/i3/config
+        owner: luiz
+        group: luiz
+        state: link
+
+    - name: link i3status-rs config
+      file:
+        src: "{{pwd}}/files/configs/i3status-rs.toml"
+        dest: /home/luiz/.config/i3/i3status-rs.toml
+        owner: luiz
+        group: luiz
+        state: link
+
+    - name: caps lock to ctrl
+      file:
+        src: "{{pwd}}/files/configs/10-keyboard.conf"
+        dest: /usr/share/X11/xorg.conf.d/10-keyboard.conf
+        owner: luiz
+        group: luiz
+        state: link
+
+    - name: install rust by rustup
+      shell: curl  https://sh.rustup.rs -sSf | sh -s -- -y
+      
+    - name: install rust toolchain
+      shell: ~/.cargo/bin/rustup toolchain install stable &&  ~/.cargo/bin/rustup default stable
+      register: rustup
+
+    - git:
+        repo: 'https://github.com/greshake/i3status-rust.git'
+        dest: /home/luiz/projects/i3status-rust
+    
+    - name: compile i3status-rs
+      shell: ~/.cargo/bin/cargo build --release 
+      args:
+        chdir: /home/luiz/projects/i3status-rust
+
+    - name: copying i3status-rs
+      become: true
+      copy:
+        src: /home/luiz/projects/i3status-rust/target/release/i3status-rs
+        dest:  /usr/bin/i3status-rs
+        owner: luiz
+        group: luiz
+        mode: 0755
+    
+    - name: link Xresources config
+      file:
+        src: "{{pwd}}/files/configs/Xresources"
+        dest: /home/luiz/.Xresources
+        owner: luiz
+        group: luiz
+        state: link
+
+    - name: Cloning  oh-my-zsh
+      git:
+        repo=https://github.com/robbyrussell/oh-my-zsh
+        dest=~/.oh-my-zsh
+
+    - name: Creating new ~/.zshrc
+      copy:
+        src=~/.oh-my-zsh/templates/zshrc.zsh-template
+        dest=~/.zshrc
+
+    - name: Set zsh as default shell
+      user: name=luiz shell=/bin/zsh
+      become: true
+    
+    # - debug: msg="{{rustup.stdout}}"
+
+    # - debug: msg="{{rustup.stderr}}"
+    # - name: copy rc-local service
+    #   copy:
+    #     src: services/rc-local.service
+    #     dest: /etc/systemd/system/rc-local.service
+
+    # - name: start rc-local service
+    #   service: name=rc-local state=started enabled=yes
+
+    # - name: link rc.local script
+    #   file:
+    #     src: "{{pwd}}/files/scripts/rc.local"
+    #     dest: /etc/rc.local
+    #     state: link
+
+    - name: add autojump to zshrc
+      lineinfile:
+        path: /home/luiz/.zshrc
+        line: '. /usr/share/autojump/autojump.zsh'
+
+    - name: add luiz to docker group
+      user: name=luiz group=docker append=yes
+      become: true
+
+    

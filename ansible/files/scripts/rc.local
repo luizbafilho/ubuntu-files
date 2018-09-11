@@ -1,5 +1,8 @@
-#!/bin/bash
+#!/bin/sh -e
 
-# Preventing instant resume after suspend
-echo XHC1 > /proc/acpi/wakeup
-echo LID0 > /proc/acpi/wakeup
+# disabling wakeup
+echo "PXSX" > /proc/acpi/wakeup
+echo "GLAN" > /proc/acpi/wakeup
+echo "XHC" > /proc/acpi/wakeup
+
+exit 0

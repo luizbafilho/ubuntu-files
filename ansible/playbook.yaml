@@ -18,11 +18,15 @@
       become: true
       apt: name={{item}} state=present
       with_items:
-        # - lightdm
+        - lightdm
         - mate-desktop-environment-extras
         - i3
+        - arc-theme
         - numix-gtk-theme 
         - numix-icon-theme
+        - fonts-powerline
+        - fonts-hack
+        - fonts-font-awesome
         - build-essential
         - libdbus-1-dev
         - curl
@@ -52,11 +56,23 @@
         - https://github.com/acrisci/playerctl/releases/download/v0.6.1/playerctl-0.6.1_amd64.deb
         - https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
         - https://vscode-update.azurewebsites.net/latest/linux-deb-x64/stable
+        - https://zoom.us/client/latest/zoom_amd64.deb
+
+    - name: create i3 config directory
+      file: path=/home/luiz/.config/i3 state=directory
     
     - name: link i3 config
       file:
         src: "{{pwd}}/files/configs/i3.conf"
         dest: /home/luiz/.config/i3/config
+        owner: luiz
+        group: luiz
+        state: link
+
+    - name: link compton config
+      file:
+        src: "{{pwd}}/files/configs/compton.conf"
+        dest: /home/luiz/.config/compton.conf
         owner: luiz
         group: luiz
         state: link
@@ -69,7 +85,12 @@
         group: luiz
         state: link
 
+    - name: create xorg.conf.d dir
+      file: path=/usr/share/X11/xorg.conf.d state=directory
+      become: true
+
     - name: caps lock to ctrl
+      become: true
       file:
         src: "{{pwd}}/files/configs/10-keyboard.conf"
         dest: /usr/share/X11/xorg.conf.d/10-keyboard.conf
@@ -102,6 +123,15 @@
         group: luiz
         mode: 0755
     
+    - name: copying rc.local
+      become: true
+      copy:
+        src: "{{pwd}}/files/scripts/rc.local"
+        dest:  /etc/rc.local
+        owner: luiz
+        group: luiz
+        mode: 0755
+
     - name: link Xresources config
       file:
         src: "{{pwd}}/files/configs/Xresources"
@@ -123,31 +153,8 @@
     - name: Set zsh as default shell
       user: name=luiz shell=/bin/zsh
       become: true
-    
-    # - debug: msg="{{rustup.stdout}}"
-
-    # - debug: msg="{{rustup.stderr}}"
-    # - name: copy rc-local service
-    #   copy:
-    #     src: services/rc-local.service
-    #     dest: /etc/systemd/system/rc-local.service
-
-    # - name: start rc-local service
-    #   service: name=rc-local state=started enabled=yes
-
-    # - name: link rc.local script
-    #   file:
-    #     src: "{{pwd}}/files/scripts/rc.local"
-    #     dest: /etc/rc.local
-    #     state: link
 
     - name: add autojump to zshrc
       lineinfile:
         path: /home/luiz/.zshrc
         line: '. /usr/share/autojump/autojump.zsh'
-
-    - name: add luiz to docker group
-      user: name=luiz group=docker append=yes
-      become: true
-
-    

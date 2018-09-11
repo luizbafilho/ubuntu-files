@@ -35,6 +35,7 @@
         - docker-ce
         - autojump
         - zsh
+        - pavucontrol
 
     - name: applying dconf values
       dconf:
@@ -53,7 +54,6 @@
       become: false
       apt: deb={{item}}
       with_items:
-        - https://github.com/acrisci/playerctl/releases/download/v0.6.1/playerctl-0.6.1_amd64.deb
         - https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
         - https://vscode-update.azurewebsites.net/latest/linux-deb-x64/stable
         - https://zoom.us/client/latest/zoom_amd64.deb

@@ -22,7 +22,7 @@
         - mate-desktop-environment-extras
         - i3
         - arc-theme
-        - numix-gtk-theme 
+        - numix-gtk-theme
         - numix-icon-theme
         - fonts-powerline
         - fonts-hack
@@ -60,7 +60,7 @@
 
     - name: create i3 config directory
       file: path=/home/luiz/.config/i3 state=directory
-    
+
     - name: link i3 config
       file:
         src: "{{pwd}}/files/configs/i3.conf"
@@ -85,6 +85,14 @@
         group: luiz
         state: link
 
+    - name: link tmux config
+      file:
+        src: "{{pwd}}/files/configs/.tmux.conf"
+        dest: /home/luiz/.tmux.conf
+        owner: luiz
+        group: luiz
+        state: link
+
     - name: create xorg.conf.d dir
       file: path=/usr/share/X11/xorg.conf.d state=directory
       become: true
@@ -100,7 +108,7 @@
 
     - name: install rust by rustup
       shell: curl  https://sh.rustup.rs -sSf | sh -s -- -y
-      
+
     - name: install rust toolchain
       shell: ~/.cargo/bin/rustup toolchain install stable &&  ~/.cargo/bin/rustup default stable
       register: rustup
@@ -108,9 +116,9 @@
     - git:
         repo: 'https://github.com/greshake/i3status-rust.git'
         dest: /home/luiz/projects/i3status-rust
-    
+
     - name: compile i3status-rs
-      shell: ~/.cargo/bin/cargo build --release 
+      shell: ~/.cargo/bin/cargo build --release
       args:
         chdir: /home/luiz/projects/i3status-rust
 
@@ -122,7 +130,7 @@
         owner: luiz
         group: luiz
         mode: 0755
-    
+
     - name: copying rc.local
       become: true
       copy:
@@ -158,3 +166,8 @@
       lineinfile:
         path: /home/luiz/.zshrc
         line: '. /usr/share/autojump/autojump.zsh'
+
+    - name: add xterm-256color to zshrc
+      lineinfile:
+        path: /home/luiz/.zshrc
+        line: 'export TERM=xterm-256color'

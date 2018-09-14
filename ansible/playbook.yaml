@@ -49,6 +49,8 @@
         - { key: /org/mate/desktop/interface/gtk-theme, value: "'Arc-Dark'" }
         - { key: /org/mate/desktop/interface/icon-theme, value: "'Numix'" }
         - { key: /org/mate/desktop/font-rendering/dpi, value: "140.0" }
+        - { key: /org/mate/desktop/peripherals/mouse/cursor-size, value: "40" }
+
 
     - name: install deb packages
       become: false

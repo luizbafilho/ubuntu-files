@@ -10,7 +10,7 @@ buttons = ["play", "next"]
 
 [[block]]
 block = "net"
-device = "wlp8s0"
+device = "{{ network_interface }}"
 ssid = false
 ip = false
 speed_up = true
@@ -42,4 +42,3 @@ format = "{average}°"
 block = "time"
 interval = 10
 format = "%a %d/%m %R"
-

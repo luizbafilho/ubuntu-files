@@ -1,0 +1,54 @@
+apt_packages:
+- lightdm
+- mate-desktop-environment-extras
+- i3
+- arc-theme
+- numix-gtk-theme
+- numix-icon-theme
+- fonts-powerline
+- fonts-hack
+- fonts-font-awesome
+- build-essential
+- libdbus-1-dev
+- curl
+- rofi
+- lm-sensors
+- docker-ce
+- autojump
+- zsh
+- pavucontrol
+
+config_files:
+- { dest: "/home/{{ user }}/.config/i3/config", src: "i3.conf.j2"}
+- { dest: "/home/{{ user }}/.config/compton.conf", src: "compton.conf.j2"}
+- { dest: "/home/{{ user }}/.config/i3/i3status-rs.toml", src: "i3status-rs.toml.j2"}
+- { dest: "/home/{{ user}}/.Xresources", src: "Xresources.j2"}
+
+dconf_params:
+- { key: /org/mate/desktop/session/required-components-list, value: "['windowmanager', 'filemanager', 'dock']"}
+- { key: /org/mate/desktop/session/required-components/windowmanager, value: "'i3'" }
+- { key: /org/mate/desktop/background/show-desktop-icons, value: "false" }
+- { key: /org/mate/desktop/interface/gtk-theme, value: "'Arc-Dark'" }
+- { key: /org/mate/desktop/interface/icon-theme, value: "'Numix'" }
+- { key: /org/mate/desktop/font-rendering/dpi, value: "140.0" }
+- { key: /org/mate/desktop/peripherals/mouse/cursor-size, value: "40" }
+
+deb_packages:
+- https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+- https://vscode-update.azurewebsites.net/latest/linux-deb-x64/stable
+- https://zoom.us/client/latest/zoom_amd64.deb
+
+i3:
+  font_size:
+    tittle: 10
+    status: 10
+
+network_interface: "wlp8s0"
+
+priv_config_files:
+- { dest: "/etc/rc.local", src: "rc.local.j2"}
+
+screen:
+  dpi: 140
+
+user: luiz

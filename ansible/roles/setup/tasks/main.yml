@@ -1,0 +1,86 @@
+---
+# tasks file for setup
+- name: Include vars
+  include_vars:
+    dir: vars
+
+- name: Add Docker GPG key
+  become: true
+  apt_key:
+    url: "https://download.docker.com/linux/ubuntu/gpg"
+
+- name: Add Docker APT repository
+  become: true
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+
+- name: Install basic packages
+  become: true
+  apt:
+    name:  "{{ item }}"
+    state: present
+  with_items: "{{ apt_packages }}"
+
+- name: Setup dconf
+  dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+  with_items: "{{ dconf_params }}"
+
+- name: Install deb packages
+  become: true
+  apt:
+    deb: "{{ item }}"
+  with_items: "{{ deb_packages }}"
+
+- name: Install rust by rustup
+  shell: "curl  https://sh.rustup.rs -sSf | sh -s -- -y"
+
+- name: Install rust toolchain
+  shell: "~/.cargo/bin/rustup toolchain install stable &&  ~/.cargo/bin/rustup default stable"
+  register: rustup
+
+- name: Fetch i3status src
+  git:
+    repo: "https://github.com/greshake/i3status-rust.git"
+    dest: "/home/{{ user }}/projects/i3status-rust"
+    force: yes
+
+- name: Compile i3status-rs
+  shell: "~/.cargo/bin/cargo build --release"
+  args:
+    chdir: "/home/{{ user }}/projects/i3status-rust"
+
+- name: Install i3status-rs
+  become: true
+  copy:
+    src: "/home/{{ user }}/projects/i3status-rust/target/release/i3status-rs"
+    dest:  "/usr/bin/i3status-rs"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0755
+
+- name: Template config files 1/3
+  file:
+   path: "/home/{{ user }}/.config/i3"
+   state: directory
+
+- name: Template config files 2/3
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest}}"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0755
+  with_items: "{{ config_files }}"
+
+- name: Template config files 3/3
+  become: true
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest}}"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0755
+  with_items: "{{ priv_config_files }}"
